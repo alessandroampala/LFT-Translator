@@ -1,0 +1,23 @@
+<prog> ::= <stat> EOF
+<statlist> ::= <stat> <statlistp>
+<statlistp> ::= <stat> <statlistp> | ε
+<stat> ::= (<statp>)
+<statp> ::= =ID <expr> {istore(id.addr, expr.val)}
+	|    cond {bexpr_f = newlabel(); bexpr_end = newlabel(); bexpr.f = bexpr_f} <bexpr> <stat> {emit(goto(bexpr_end)); emit(bexpr.f)} <elseopt> {emit(bexpr.end)}
+	|    while {bexpr_t = newlabel(); bexpr_f = newlabel(); emit(bexpr.t); bexpr.f = bexpr_f} <bexpr> <stat> {emit(goto(bexpr.t)); emit(bexpr.f)}
+	|    do <statlist>
+	|    print {exprlist.opCode = null} <exprlist> {emit(invokestatic(print))}
+	|    read ID {emit(invokestatic(read)); emit(istore(id.addr))}
+<elseopt> ::= (else <stat>) | ε
+<bexpr> ::= ({beprp.label_f = bexpr.label_f} <bexprp>)
+<bexprp> ::= RELOP <expr> <expr> {emit(ificmpX(bexprp.label_f))}
+			| && {second_check_and = newlabel(); bexpr1.label_t = second_check_and; bexpr1.label_f = bexpr.label_f} <bexpr1> {emit(second_check_and); bexpr2.label_t = bexpr.label_t; bexpr2.label_f = bexpr.label_f} <bexpr2>
+			| || {check_second_or_label = newlabel(); bexpr1.label_t = bexpr.label_t; bexpr1.label_f = check_second_or_label} <bexpr1> {emit(goto(label_t)); emit(check_second_or_label); bexpr2.label_t = bexpr.label_t; bexpr2.label_f = bexpr.label_f} <bexpr2>
+			| ! {bexpr1.label_t = bexpr.label_f; bexpr1.label_f = bexpr.label_t;} <bexpr1> {emit(goto(label_f))}
+<expr> ::= NUM {emit(ldc(NUM.lexval))} | ID {emit(iload(id.addr))} | (<exprp>)
+<exprp> ::= + {exprlist.opCode = "iadd"} <exprlist> 
+		  | -<expr> <expr> {emit(isub)}
+		  | * {exprlist.opCode = "imul"} <exprlist> 
+		  | /<expr><expr>  {emit(idiv)}
+<exprlist> ::= <expr> {if(exprlist.opCode == OpCode.invokestatic) emit(OpCode.invokestatic, 1); exprlistp.opCode = exprlist.opCode} <exprlistp>
+<exprlistp> ::= <expr> {emit(exprlistp.opCode); exprlistp1.opCode = exprlistp.opCode} <exprlistp> | ε

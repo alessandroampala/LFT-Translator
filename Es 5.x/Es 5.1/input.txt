@@ -1,0 +1,20 @@
+(do
+	(read x)
+	(read y)
+	(cond (> x y)
+		(while (> x y)
+			(do
+				(= x (- x 1))
+				(print x)
+			)
+		)
+		(else
+			(while (< x y)
+				(do
+					(= x (+ x 1))
+					(print x)
+				)
+			)
+		)
+	)
+)

@@ -1,0 +1,14 @@
+(do
+    (print (+ (/ 10 5) 2 56 3 2 3) 34 35)
+    (read x)
+    (cond (> x 10) 
+        (do
+            (read y)
+        )
+    (else (print x 12)) 
+    )
+
+	(print x)
+	(read y)
+	(= y 1236)
+)
